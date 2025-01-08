@@ -1,0 +1,18 @@
+FROM node:20-alpine3.20 as builder
+
+WORKDIR /app
+
+COPY . .
+
+ARG VITE_APP_BACKEND_ADDRESS
+ENV VITE_APP_BACKEND_ADDRESS $VITE_APP_BACKEND_ADDRESS
+
+RUN npm install
+RUN npm run build
+
+# run phase
+FROM nginx:1.27.3-alpine-slim as prod
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf  /etc/nginx/conf.d
+EXPOSE 3000
+CMD ["nginx", "-g", "daemon off;"]
